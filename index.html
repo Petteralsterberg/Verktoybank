@@ -1116,16 +1116,20 @@ refreshAdmin();
 
     const merke = kjoretoy.kjoretoyId?.understellsnummer || "Ukjent";
 
-    const teknisk = kjoretoy.godkjenning?.tekniskGodkjenning || {};
+function findMotorKode(obj) {
+  if (!obj || typeof obj !== "object") return "";
 
-const motorObj = teknisk?.motorOgDrivverk?.motor?.[0] || {};
+  if (obj.motorKode) return obj.motorKode;
 
-const motor =
-  motorObj.motorKode ||
-  motorObj?.kode?.motorKode ||
-  motorObj?.kode?.kodeNavn ||
-  motorObj?.kodeNavn ||
-  "Ukjent motor";
+  for (const key in obj) {
+    const result = findMotorKode(obj[key]);
+    if (result) return result;
+  }
+
+  return "";
+}
+
+const motor = findMotorKode(kjoretoy) || "Ukjent motor";
    
     infoBox.innerHTML = `
       <strong>${regnr}</strong><br>
