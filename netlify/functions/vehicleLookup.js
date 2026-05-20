@@ -8,9 +8,8 @@ exports.handler = async (event) => {
         body: JSON.stringify({ error: "Registreringsnummer mangler" }),
       };
     }
-
-    const response = await fetch(
-      `https://akfell-dataut.vegvesen.no/enkeltoppslag/kjoretoydata?kjennemerke=${regnr}`,
+const response = await fetch(
+  `https://www.vegvesen.no/ws/no/vegvesen/kjoretoy/felles/datautlevering/enkeltoppslag/kjoretoydata?kjennemerke=${regnr}`,
       {
         headers: {
           "SVV-Authorization": process.env.VEGVESEN_API_KEY,
