@@ -1,35 +1,44 @@
-exports.handler = async (event) => {
+async function lookupVehicle() {
+  const regnr = document.getElementById("regnrInput").value.trim().toUpperCase();
+
+  if (!regnr) {
+    alert("Skriv inn registreringsnummer");
+    return;
+  }
+
+  const infoBox = document.getElementById("vehicleInfo");
+  infoBox.style.display = "block";
+  infoBox.innerHTML = "Henter motorkode...";
+
   try {
-    const regnr = event.queryStringParameters.regnr?.toUpperCase();
-
-    if (!regnr) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Registreringsnummer mangler" }),
-      };
-    }
-const response = await fetch(
-  `https://www.vegvesen.no/ws/no/vegvesen/kjoretoy/felles/datautlevering/enkeltoppslag/kjoretoydata?kjennemerke=${regnr}`,
-      {
-        headers: {
-          "SVV-Authorization": process.env.VEGVESEN_API_KEY,
-          Accept: "application/json",
-        },
-      }
-    );
-
+    const response = await fetch(`/.netlify/functions/vehicleLookup?regnr=${regnr}`);
     const data = await response.json();
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(data),
-    };
+    const kjoretoy = data?.kjoretoydataListe?.[0];
+    const teknisk = kjoretoy?.godkjenning?.tekniskGodkjenning;
+
+    const motor =
+      teknisk?.motorOgDrivverk?.motor?.[0]?.motorKode ||
+      teknisk?.motorOgDrivverk?.motor?.motorKode ||
+      teknisk?.motorOgDrivverk?.motor?.[0]?.betegnelse ||
+      teknisk?.motorOgDrivverk?.motor?.betegnelse ||
+      "";
+
+    if (!motor) {
+      infoBox.innerHTML = `<strong>${regnr}</strong><br>Fant ikke motorkode.`;
+      return;
+    }
+
+    infoBox.innerHTML = `
+      <strong>${regnr}</strong><br>
+      Motorkode: ${motor}
+    `;
+
+    document.getElementById("search").value = motor;
+    render();
+
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: err.message,
-      }),
-    };
+    console.error(err);
+    infoBox.innerHTML = "Feil ved oppslag.";
   }
-};
+}
