@@ -566,6 +566,14 @@
         <option value="Alle">Alle avdelinger</option><option value="F">Fredrikstad</option><option value="S">Sarpsborg</option><option value="M">Moss</option>
       </select>
       <button onclick="loadTools()">Oppdater</button>
+      <div class="row" style="gap:10px;grid-column:1/-1;">
+  <input id="regnrInput" placeholder="Skriv registreringsnummer">
+  <button onclick="lookupVehicle()">Hent kjøretøydata</button>
+</div>
+
+<div id="vehicleInfo"
+     style="grid-column:1/-1;background:#f8fafc;border:1px solid #dbe3ee;padding:14px;border-radius:18px;display:none;">
+</div>
     </section>
 
     <section class="admin-panel" id="adminPanel">
@@ -1077,6 +1085,71 @@ el("location").addEventListener("change", render);
 el("modalOverlay").addEventListener("click", closeModal);
 loadTools();
 refreshAdmin();
+  async function lookupVehicle() {
+  const regnr = document.getElementById("regnrInput").value.trim().toUpperCase();
+
+  if (!regnr) {
+    alert("Skriv inn registreringsnummer");
+    return;
+  }
+
+  const infoBox = document.getElementById("vehicleInfo");
+
+  infoBox.style.display = "block";
+  infoBox.innerHTML = "Henter kjøretøydata...";
+
+  try {
+    const response = await fetch(
+      `/.netlify/functions/vehicleLookup?regnr=${regnr}`
+    );
+
+    const data = await response.json();
+
+    console.log(data);
+
+    const kjoretoy = data?.kjoretoydataListe?.[0];
+
+    if (!kjoretoy) {
+      infoBox.innerHTML = "Fant ingen kjøretøydata.";
+      return;
+    }
+
+    const merke = kjoretoy.kjoretoyId?.understellsnummer || "Ukjent";
+
+    const teknisk = kjoretoy.godkjenning?.tekniskGodkjenning || {};
+
+    const motor =
+      teknisk.motorOgDrivverk?.motor?.kode ||
+      teknisk.motorOgDrivverk?.motor?.betegnelse ||
+      "Ukjent motor";
+
+    const modell =
+      teknisk.generelt?.handelsbetegnelse ||
+      "Ukjent modell";
+
+    const drivstoff =
+      teknisk.motorOgDrivverk?.motor?.drivstoff?.kodeBeskrivelse ||
+      "";
+
+    infoBox.innerHTML = `
+      <strong>${regnr}</strong><br>
+      ${modell}<br>
+      Motor: ${motor}<br>
+      ${drivstoff}
+    `;
+
+    // automatisk søk/filter
+    const search = document.getElementById("search");
+
+    search.value = `${modell} ${motor}`;
+
+    render();
+
+  } catch (err) {
+    console.error(err);
+    infoBox.innerHTML = "Feil ved oppslag.";
+  }
+}
 </script>
 </body>
 </html>
