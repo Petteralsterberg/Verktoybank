@@ -1,44 +1,36 @@
-async function lookupVehicle() {
-  const regnr = document.getElementById("regnrInput").value.trim().toUpperCase();
-
-  if (!regnr) {
-    alert("Skriv inn registreringsnummer");
-    return;
-  }
-
-  const infoBox = document.getElementById("vehicleInfo");
-  infoBox.style.display = "block";
-  infoBox.innerHTML = "Henter motorkode...";
-
+exports.handler = async (event) => {
   try {
-    const response = await fetch(`/.netlify/functions/vehicleLookup?regnr=${regnr}`);
-    const data = await response.json();
+    const regnr = event.queryStringParameters.regnr?.toUpperCase();
 
-    const kjoretoy = data?.kjoretoydataListe?.[0];
-    const teknisk = kjoretoy?.godkjenning?.tekniskGodkjenning;
-
-    const motor =
-      teknisk?.motorOgDrivverk?.motor?.[0]?.motorKode ||
-      teknisk?.motorOgDrivverk?.motor?.motorKode ||
-      teknisk?.motorOgDrivverk?.motor?.[0]?.betegnelse ||
-      teknisk?.motorOgDrivverk?.motor?.betegnelse ||
-      "";
-
-    if (!motor) {
-      infoBox.innerHTML = `<strong>${regnr}</strong><br>Fant ikke motorkode.`;
-      return;
+    if (!regnr) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Registreringsnummer mangler" }),
+      };
     }
 
-    infoBox.innerHTML = `
-      <strong>${regnr}</strong><br>
-      Motorkode: ${motor}
-    `;
+    const response = await fetch(
+      `https://www.vegvesen.no/ws/no/vegvesen/kjoretoy/felles/datautlevering/enkeltoppslag/kjoretoydata?kjennemerke=${regnr}`,
+      {
+        headers: {
+          "SVV-Authorization": process.env.VEGVESEN_API_KEY,
+          Accept: "application/json",
+        },
+      }
+    );
 
-    document.getElementById("search").value = motor;
-    render();
+    const text = await response.text();
 
+    return {
+      statusCode: response.status,
+      body: text,
+    };
   } catch (err) {
-    console.error(err);
-    infoBox.innerHTML = "Feil ved oppslag.";
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: err.message,
+      }),
+    };
   }
-}
+};
