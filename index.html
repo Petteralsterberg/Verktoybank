@@ -1118,14 +1118,18 @@ refreshAdmin();
 
     const teknisk = kjoretoy.godkjenning?.tekniskGodkjenning || {};
 
-    const motor =
-      teknisk.motorOgDrivverk?.motor?.motorKode ||
-      teknisk.motorOgDrivverk?.motor?.betegnelse ||
-      "Ukjent motor";
+const motorObj = teknisk?.motorOgDrivverk?.motor?.[0] || {};
 
+const motor =
+  motorObj.motorKode ||
+  motorObj?.kode?.motorKode ||
+  motorObj?.kode?.kodeNavn ||
+  motorObj?.kodeNavn ||
+  "Ukjent motor";
+   
     infoBox.innerHTML = `
       <strong>${regnr}</strong><br>
-      Motor: ${motor}<br>
+      MotorKode: ${motor}<br>
     `;
 
     // automatisk søk/filter
