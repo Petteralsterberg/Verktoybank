@@ -1123,19 +1123,9 @@ refreshAdmin();
       teknisk.motorOgDrivverk?.motor?.betegnelse ||
       "Ukjent motor";
 
-    const modell =
-      teknisk.generelt?.handelsbetegnelse ||
-      "Ukjent modell";
-
-    const drivstoff =
-      teknisk.motorOgDrivverk?.motor?.drivstoff?.kodeBeskrivelse ||
-      "";
-
     infoBox.innerHTML = `
       <strong>${regnr}</strong><br>
-      ${modell}<br>
       Motor: ${motor}<br>
-      ${drivstoff}
     `;
 
     // automatisk søk/filter
