@@ -936,7 +936,6 @@ async function toggleAdmin() {
   adminMode = !adminMode;
   refreshAdmin();
 }
-}
 function loginAdmin() {
   if (el("adminPassword").value !== ADMIN_PASSWORD) { alert("Feil passord"); return; }
   el("adminPassword").value = "";
